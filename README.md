@@ -22,8 +22,20 @@ chat interface) together inside a single container, ready to be imported into th
 
 ### 1 · Build and push the Docker image
 
+The image is built and published automatically to
+`ghcr.io/awakenthejaken/pelican-ollama-webui:latest` by the GitHub Actions
+workflow (`.github/workflows/docker-publish.yml`) on every push to `main`.
+No manual steps are needed for the published image.
+
+If you want to build a local copy, clone the repository first and run the
+commands **from inside the repository directory**:
+
 ```bash
-# Replace with your own container registry / username
+# Clone the repo and enter it
+git clone https://github.com/AwakenTheJaken/pelican-ollama-webui.git
+cd pelican-ollama-webui
+
+# Replace with your own container registry / username if desired
 IMAGE=ghcr.io/awakenthejaken/pelican-ollama-webui:latest
 
 docker build -t "$IMAGE" .
