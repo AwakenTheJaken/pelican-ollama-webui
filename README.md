@@ -11,8 +11,9 @@ chat interface) together inside a single container, ready to be imported into th
 
 | File | Purpose |
 |------|---------|
-| `Dockerfile` | Builds the combined Ollama + Open WebUI image (Ubuntu 24.04 base) |
-| `entrypoint.sh` | Startup script – launches Ollama, waits for it, optionally pulls a model, then starts Open WebUI |
+| `Dockerfile` | Multi-stage build: copies Ollama from the official image and installs Open WebUI on Ubuntu 24.04 |
+| `entrypoint.sh` | Startup script – launches Ollama, waits for it, optionally pulls a model, then starts Open WebUI with full logging |
+| `healthcheck.sh` | Probes Ollama (`:11434`) and Open WebUI (`:WEBUI_PORT`) – used by Docker `HEALTHCHECK` and runnable manually |
 | `egg.json` | Pelican egg definition (PTDL_v2) – import this into your panel |
 | `README.md` | This file |
 
@@ -69,7 +70,7 @@ docker push "$IMAGE"
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `WEBUI_PORT` | `8080` | Port Open WebUI listens on (set by Pelican allocation) |
+| `WEBUI_PORT` | `3000` | Port Open WebUI listens on (set by Pelican allocation) |
 | `OLLAMA_MODEL` | `llama3.2` | Model pulled automatically on first start (empty = skip) |
 | `WEBUI_SECRET_KEY` | `changeme` | Session signing secret – **change this** |
 | `OLLAMA_HOST` | `0.0.0.0:11434` | Ollama API bind address inside the container |
@@ -97,10 +98,80 @@ that path to persist models across container restarts:
 ```bash
 docker run -d \
   -v ollama_data:/root/.ollama \
-  -p 8080:8080 \
+  -p 3000:3000 \
   -e OLLAMA_MODEL=llama3.2 \
   -e WEBUI_SECRET_KEY=supersecret \
   ghcr.io/awakenthejaken/pelican-ollama-webui:latest
+```
+
+---
+
+## Startup log output
+
+Every step is logged with a UTC timestamp so you can follow progress in the Pelican
+console:
+
+```
+[2026-01-01T00:00:00Z] === Pelican Ollama + Open WebUI ===
+[2026-01-01T00:00:00Z] OLLAMA_HOST=0.0.0.0:11434 | WEBUI_PORT=3000 | MODEL=llama3.2
+[2026-01-01T00:00:00Z] Starting Ollama...
+[2026-01-01T00:00:00Z] Ollama started (PID=12)
+[2026-01-01T00:00:00Z] Checking Ollama health...
+[2026-01-01T00:00:02Z] Ollama ready (after 2s)
+[2026-01-01T00:00:02Z] Pulling model llama3.2...
+[2026-01-01T00:02:15Z] Model ready: llama3.2
+[2026-01-01T00:02:15Z] Starting Open WebUI on 0.0.0.0:3000...
+[2026-01-01T00:02:15Z] Open WebUI started (PID=34)
+[2026-01-01T00:02:15Z] Waiting for Open WebUI to be ready...
+[2026-01-01T00:02:28Z] Open WebUI running on port 3000
+[2026-01-01T00:02:28Z] Application startup complete
+```
+
+---
+
+## Health checks
+
+The image ships a `/healthcheck.sh` script that is used by Docker's built-in
+`HEALTHCHECK` instruction and can also be run manually inside a running container:
+
+```bash
+docker exec <container_id> /healthcheck.sh
+```
+
+The script:
+1. Queries `http://localhost:11434/api/tags` (Ollama API)
+2. Queries `http://localhost:${WEBUI_PORT}/health` (Open WebUI)
+3. Returns exit code `0` (healthy) only when both endpoints respond.
+
+---
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---------|-------------|-----|
+| Container exits immediately | Entrypoint crash | Run `docker logs <id>` and look for `FATAL:` lines |
+| `FATAL: Ollama did not respond within 60s` | Ollama crashed | Check for OOM or missing GPU driver; reduce model size |
+| `FATAL: Open WebUI process exited unexpectedly` | Python error in Open WebUI | Run with `-e WEBUI_PORT=3000` to verify port conflict |
+| Model pull fails | No internet access from container | Ensure the host has outbound internet; check firewall rules |
+| Health check shows `UNHEALTHY` | Service still starting | Wait 120 s (start-period) before treating as truly unhealthy |
+
+**Useful debug commands:**
+
+```bash
+# Stream live logs
+docker logs -f <container_id>
+
+# Check health status
+docker inspect --format='{{.State.Health.Status}}' <container_id>
+
+# Run health check manually
+docker exec <container_id> /healthcheck.sh
+
+# List downloaded models
+docker exec <container_id> ollama list
+
+# Open a shell inside the container
+docker exec -it <container_id> bash
 ```
 
 ---
