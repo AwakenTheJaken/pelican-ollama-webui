@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
         python3 \
         python3-pip \
+        zstd \
     && rm -rf /var/lib/apt/lists/*
 
 # ── Ollama ────────────────────────────────────────────────────────────────────
