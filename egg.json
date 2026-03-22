@@ -13,7 +13,7 @@
         "ghcr.io/awakenthejaken/pelican-ollama-webui:latest": "ghcr.io/awakenthejaken/pelican-ollama-webui:latest"
     },
     "file_denylist": [],
-    "startup": "bash /entrypoint.sh",
+    "startup": "/entrypoint.sh",
     "config": {
         "files": "{}",
         "startup": {
@@ -35,7 +35,7 @@
             "name": "Web UI Port",
             "description": "The port Open WebUI listens on. Must match the port allocated to this server in the Pelican panel.",
             "env_variable": "WEBUI_PORT",
-            "default_value": "8080",
+            "default_value": "3000",
             "user_viewable": true,
             "user_editable": false,
             "rules": "required|numeric|between:1024,65535",
