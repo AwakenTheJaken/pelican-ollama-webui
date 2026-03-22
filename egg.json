@@ -1,0 +1,75 @@
+{
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PELICAN PANEL - PTERODACTYL_v2",
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2026-03-22T21:25:00+00:00",
+    "name": "Ollama + Open WebUI",
+    "author": "awakenthejaken@github",
+    "description": "Runs the Ollama LLM inference engine alongside the Open WebUI chat interface in a single container. Access the chat UI on the server's allocated port. GPU passthrough is supported when the host has NVIDIA drivers and the NVIDIA Container Toolkit installed.",
+    "features": null,
+    "docker_images": {
+        "ghcr.io/awakenthejaken/pelican-ollama-webui:latest": "ghcr.io/awakenthejaken/pelican-ollama-webui:latest"
+    },
+    "file_denylist": [],
+    "startup": "bash /entrypoint.sh",
+    "config": {
+        "files": "{}",
+        "startup": {
+            "done": "Application startup complete",
+            "userInteraction": []
+        },
+        "logs": {},
+        "stop": "^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/bash\n# Nothing to install – everything is baked into the Docker image.\necho \"Ollama + Open WebUI image is ready.\"\n",
+            "container": "ghcr.io/awakenthejaken/pelican-ollama-webui:latest",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "Web UI Port",
+            "description": "The port Open WebUI listens on. Must match the port allocated to this server in the Pelican panel.",
+            "env_variable": "WEBUI_PORT",
+            "default_value": "8080",
+            "user_viewable": true,
+            "user_editable": false,
+            "rules": "required|numeric|between:1024,65535",
+            "field_type": "text"
+        },
+        {
+            "name": "Ollama Model",
+            "description": "The Ollama model to pull automatically on first start (e.g. llama3.2, mistral, gemma3). Leave empty to skip auto-pull.",
+            "env_variable": "OLLAMA_MODEL",
+            "default_value": "llama3.2",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string|max:100",
+            "field_type": "text"
+        },
+        {
+            "name": "Open WebUI Secret Key",
+            "description": "Secret key used by Open WebUI for session signing. Change this to a strong random string before exposing the UI publicly.",
+            "env_variable": "WEBUI_SECRET_KEY",
+            "default_value": "changeme",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|min:8|max:255",
+            "field_type": "text"
+        },
+        {
+            "name": "Ollama Host Binding",
+            "description": "Address and port Ollama listens on inside the container. Defaults to all interfaces on port 11434.",
+            "env_variable": "OLLAMA_HOST",
+            "default_value": "0.0.0.0:11434",
+            "user_viewable": true,
+            "user_editable": false,
+            "rules": "required|string",
+            "field_type": "text"
+        }
+    ]
+}
