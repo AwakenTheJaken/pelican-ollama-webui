@@ -8,7 +8,7 @@
 FROM ollama/ollama:latest AS ollama-source
 
 # ── Stage 2: build the combined image ────────────────────────────────────────
-FROM ubuntu:24.04
+FROM debian:bookworm-slim
 
 # ── Environment ──────────────────────────────────────────────────────────────
 ENV DEBIAN_FRONTEND=noninteractive
