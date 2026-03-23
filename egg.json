@@ -43,12 +43,12 @@
         },
         {
             "name": "Ollama Model",
-            "description": "The Ollama model to pull automatically on first start (e.g. llama3.2, mistral, gemma3). Leave empty to skip auto-pull.",
-            "env_variable": "OLLAMA_MODEL",
-            "default_value": "llama3.2",
+            "description": "The Ollama model to pull automatically on startup (e.g. llama3, llama3.2, mistral, gemma3).",
+            "env_variable": "MODEL",
+            "default_value": "llama3",
             "user_viewable": true,
             "user_editable": true,
-            "rules": "nullable|string|max:100",
+            "rules": "required|string|max:100",
             "field_type": "text"
         },
         {
